@@ -1,4 +1,6 @@
 #import "FlutterWebviewPlugin.h"
+#import "CustomUIController.h"
+#import "ViewController.h"
 
 static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
 
@@ -9,19 +11,53 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
 }
 @end
 
+@interface ViewController ()
+    @property(strong,nonatomic) WKWebView *theWebView;
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+     NSError *moveError = nil;
+    //modify the array of file types to fit the web file types your app uses.
+    if (moveError != nil) {
+        NSLog(@"%@",moveError.description);
+    }
+    WKWebViewConfiguration *theConfiguration = 
+          [[WKWebViewConfiguration alloc] init];
+    [theConfiguration.userContentController 
+          addScriptMessageHandler:self name:@"nativeMessage"];
+    
+    _theWebView = [[WKWebView alloc] initWithFrame:self.view.frame 
+                      configuration:theConfiguration];
+    [self.view addSubview:_theWebView];
+}
+
+- (void)userContentController:(WKUserContentController *)userContentController 
+                            didReceiveScriptMessage:(WKScriptMessage *)message{
+    [channel invokeMethod:@"javascriptMessage" arguments:message.body];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+}
+
+@end
+
 @implementation FlutterWebviewPlugin
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     channel = [FlutterMethodChannel
                methodChannelWithName:CHANNEL_NAME
                binaryMessenger:[registrar messenger]];
 
-    UIViewController *viewController = [UIApplication sharedApplication].delegate.window.rootViewController;
+    ViewController *viewController = [UIApplication sharedApplication].delegate.window.rootViewController;
     FlutterWebviewPlugin* instance = [[FlutterWebviewPlugin alloc] initWithViewController:viewController];
 
     [registrar addMethodCallDelegate:instance channel:channel];
 }
 
-- (instancetype)initWithViewController:(UIViewController *)viewController {
+- (instancetype)initWithViewController:(ViewController *)viewController {
     self = [super init];
     if (self) {
         self.viewController = viewController;
@@ -110,7 +146,7 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
     self.webview.hidden = [hidden boolValue];
     self.webview.scrollView.showsHorizontalScrollIndicator = [scrollBar boolValue];
     self.webview.scrollView.showsVerticalScrollIndicator = [scrollBar boolValue];
-
+    self.webview.
     _enableZoom = [withZoom boolValue];
 
     [self.viewController.view addSubview:self.webview];
@@ -190,6 +226,7 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
     }
 }
 
+
 - (void)reloadUrl:(FlutterMethodCall*)call {
     if (self.webview != nil) {
 		NSString *url = call.arguments[@"url"];
@@ -242,7 +279,7 @@ static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
                 @"type": @"shouldStart",
                 @"navigationType": [NSNumber numberWithInt:navigationAction.navigationType]};
     [channel invokeMethod:@"onState" arguments:data];
-
+    
     if (navigationAction.navigationType == WKNavigationTypeBackForward) {
         [channel invokeMethod:@"onBackPressed" arguments:nil];
     } else {
