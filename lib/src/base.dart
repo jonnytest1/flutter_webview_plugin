@@ -29,6 +29,7 @@ class FlutterWebviewPlugin {
   final _onScrollXChanged = StreamController<double>.broadcast();
   final _onScrollYChanged = StreamController<double>.broadcast();
   final _onHttpError = StreamController<WebViewHttpError>.broadcast();
+  final _javascriptMessage=StreamController<JavascriptMessage>.broadcast();
 
   Future<Null> _handleMessages(MethodCall call) async {
     switch (call.method) {
@@ -54,6 +55,9 @@ class FlutterWebviewPlugin {
       case 'onHttpError':
         _onHttpError.add(WebViewHttpError(call.arguments['code'], call.arguments['url']));
         break;
+      case 'javascriptMessage':
+        _javascriptMessage.add(JavascriptMessage(call.arguments['type'], call.arguments['message']));
+        break;
     }
   }
 
@@ -76,6 +80,7 @@ class FlutterWebviewPlugin {
 
   Stream<WebViewHttpError> get onHttpError => _onHttpError.stream;
 
+  Stream<JavascriptMessage> get onJavascriptMessage => _javascriptMessage.stream;
   /// Start the Webview with [url]
   /// - [headers] specify additional HTTP headers
   /// - [withJavascript] enable Javascript or not for the Webview
@@ -188,6 +193,7 @@ class FlutterWebviewPlugin {
     _onScrollXChanged.close();
     _onScrollYChanged.close();
     _onHttpError.close();
+    _javascriptMessage.close();
     _instance = null;
   }
 
@@ -247,4 +253,10 @@ class WebViewHttpError {
 
   final String url;
   final String code;
+}
+
+class JavascriptMessage{
+  final String message;
+  final String type;
+  JavascriptMessage(this.type,this.message);
 }

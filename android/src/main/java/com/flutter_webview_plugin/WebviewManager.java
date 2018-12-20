@@ -78,6 +78,7 @@ class WebviewManager {
 
     WebviewManager(final Activity activity) {
         this.webView = new ObservableWebView(activity);
+        this.webView.addJavascriptInterface(new JavascriptInterface(activity,FlutterWebviewPlugin.channel),"nativeInterface");
         this.activity = activity;
         this.resultHandler = new ResultHandler();
         WebViewClient webViewClient = new BrowserClient();
