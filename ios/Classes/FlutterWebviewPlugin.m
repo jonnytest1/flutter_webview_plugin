@@ -1,5 +1,4 @@
 #import "FlutterWebviewPlugin.h"
-//#import <ViewController.h>
 
 static NSString *const CHANNEL_NAME = @"flutter_webview_plugin";
 
